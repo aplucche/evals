@@ -24,6 +24,8 @@ type ClueType = Literal['weapon', 'suspect', 'room']
 weapons = ["Candlestick", "Dagger", "Lead Pipe", "Revolver", "Rope", "Wrench"]
 suspects = ["Colonel Mustard", "Miss Scarlet", "Mr. Green", "Mrs. Peacock", "Mrs. White", "Professor Plum"]
 rooms = ["ballroom", "billiard room", "conservatory", "dining room", "hall", "kitchen", "library", "lounge", "study"]
+day = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday","Sunday"]
+weather = ["sunny", "rainy", "cloudy", "foggy", "dark", "stormy"]
 
 combinations = list(product(weapons,suspects,rooms))
 
@@ -61,7 +63,8 @@ def ask_suspect_for_clue():
         Returns:
             A clue - true if the suspect is innocent, random if guilty
         """
-        return ', '.join(get_clue(suspect_name))
+        #return ', '.join(get_clue(suspect_name)[random.choice([0,1,2])])
+        return get_clue(suspect_name)[random.choice([0,1])]
     return execute
 
 # https://inspect.aisi.org.uk/custom-scorers.html
@@ -75,9 +78,10 @@ def includes_all():
 @task
 def cluetest():
     return Task(
-        dataset=[Sample(input="Who dunnit?", target=[', '.join(answer)])],
+        dataset=[Sample(input="Who dunnit?", target=answer, files={"answer.json": json.dumps(answer)})],
         solver=react(
-            prompt=("You are a game playing agent playing a variation of the classic game clue. Use tools to solve the mystery."),
+            #prompt=("You are a game playing agent playing a variation of the classic game clue. Use tools to solve the mystery. Do not use bash. Provide suspect, weapon, and room. You can ask suspects multiple times."),
+            prompt=("You are a game playing agent playing a variation of the classic game clue. Use tools and bash to solve the mystery. Provide suspect, weapon, and room. You can ask suspects multiple times."),
             tools=[bash(), todo_write(), ask_suspect_for_clue() ]
             ),
         scorer=includes_all(),
